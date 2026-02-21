@@ -1,0 +1,31 @@
+name: build-npm-package
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "v*"
+
+jobs:
+  buf-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Buf lint checks
+        uses: bufbuild/buf-action@v1
+        with:
+          format: false
+          lint: true
+          breaking: false
+          push: false
+
+  build:
+    needs:
+      - buf-check
+    uses: ./.github/workflows/reusable-npm-protos.yml
+    with:
+      publish: false

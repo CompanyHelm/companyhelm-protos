@@ -1,0 +1,313 @@
+syntax = "proto3";
+package companyhelm.runner.v1;
+
+import "agent_runner/proto/validate.proto";
+
+
+// Transport contract between backend control plane and runner clients.
+// RegisterRunner performs a capability handshake; CommandChannel carries
+// asynchronous commands and updates correlated by command_id.
+service AgentRunnerControlService {
+  // Called once when a runner connects so the server can decide whether this
+  // runner instance is allowed to participate in command processing.
+  rpc RegisterRunner(RegisterRunnerRequest) returns (RegisterRunnerResponse);
+  // Bidirectional stream used for the lifecycle of a connected runner.
+  // Server pushes work; runner pushes updates/results.
+  // Client initiated requests should have their own rpc call.
+  rpc CommandChannel(stream ClientMessage) returns (stream ServerMessage);
+  // Runner-scoped list of GitHub App installations already associated with it.
+  rpc ListGithubInstallationsForRunner(ListGithubInstallationsForRunnerRequest) returns (ListGithubInstallationsForRunnerResponse);
+  // Mints a short-lived token for one installation so the runner can call
+  // GitHub APIs without storing long-lived credentials.
+  rpc GetGithubInstallationAccessTokenForRunner(GetGithubInstallationAccessTokenForRunnerRequest) returns (GetGithubInstallationAccessTokenForRunnerResponse);
+}
+
+/************************************************/
+/* COMMON MESSAGES                              */ 
+/************************************************/
+
+// an instation of an agent
+message Agent {
+    // runner specific identifier of the agent
+    string id = 1 [(buf.validate.field).string.min_len = 1];
+    // name of the agent
+    string name = 2 [(buf.validate.field).string.min_len = 1];
+    // sdk used by the agent
+    string sdk = 3 [(buf.validate.field).string.min_len = 1];
+    // models supported by the agent
+    string model = 4 [(buf.validate.field).string.min_len = 1];
+    // reasoning level supported by the agent
+    string reasoning_level = 5 [(buf.validate.field).string.min_len = 1];
+}
+
+/************************************************/
+/* REGISTRATION PROTOCOL                        */ 
+/************************************************/
+
+// runner identity is currently inferred from transport-level
+message RegisterRunnerRequest {
+  // agent sdks supported by the runner
+  repeated AgentSdk agent_sdks = 1;
+  // agents curently installed on the runner
+  repeated Agent agents = 2;
+}
+
+message AgentSdk {
+  // name of the sdk, e.g. Codex, Claude Code, etc
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+  // models supported by the sdk
+  repeated LLMModel models = 2;
+}
+
+message LLMModel {
+  // name of the model, e.g. gpt-5.3-codex, 
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+  // reasoning levels this model supports (empty means default only).
+  repeated string reasoning = 2;
+}
+
+message ModelReasoning {
+  // name of the reasoning level, e.g. xhign, high, medium, low
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message RegisterRunnerResponse {
+}
+
+/************************************************/
+/* COMMAND PROTOCOL                             */ 
+/************************************************/
+
+// Messages sent from runner to server over CommandChannel.
+message ClientMessage {
+  // Correlates this update/result with the originating ServerMessage command.
+  string command_id = 1 [(buf.validate.field).string.min_len = 1];
+  oneof payload {
+    AgentCreatedUpdate agent_created_update = 2;
+    AgentDeletedUpdate agent_deleted_update = 3;
+    ThreadCreatedUpdate thread_created_update = 4;
+    TurnStartedUpdate turn_started_update = 5;
+    TurnCompletedUpdate turn_completed_update = 6;
+    TurnSteeredUpdate turn_steered_update = 7;
+    SkillMpInstalledUpdate skill_mp_installed_update = 8;
+    CommandError command_error = 9;
+  }
+}
+
+// Messages sent from server to runner over CommandChannel.
+message ServerMessage {
+  // Correlation key echoed by ClientMessage.command_id in runner responses.
+  string command_id = 1 [(buf.validate.field).string.min_len = 1];
+  oneof command {
+    CreateAgentCommand create_agent_command = 2;
+    DeleteAgentCommand delete_agent_command = 3;
+    CreateThreadCommand create_thread_command = 4;
+    CreateTurnCommand create_turn_command = 5;
+    SteerTurnCommand steer_turn_command = 6;
+    InstallSkillsMpCommand install_skillsmp_command = 7;
+  }
+}
+
+message CommandError {
+  // Error message
+  string message = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message CreateAgentCommand {
+  // Agent identifier to create
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // SDK executor to use (for example codex/openai), chosen by control plane.
+  string agent_sdk = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message AgentCreatedUpdate {
+  AgentCreatedUpdateStatus status = 1;
+  // Error message if the agent initialization failed
+  optional string failure_message = 2;
+}
+
+enum AgentCreatedUpdateStatus {
+  AGENT_CREATED_UPDATE_STATUS_UNKNOWN = 0;
+  AGENT_CREATED_UPDATE_STATUS_SUCCESS = 1;
+  AGENT_CREATED_UPDATE_STATUS_FAILED = 2;
+}
+
+message DeleteAgentCommand {
+  // Agent identifier to delete
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message AgentDeletedUpdate {
+  // Agent identifier that was deleted
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Status of the agent deletion
+  AgentDeletedUpdateStatus status = 2;
+  // Error message if the agent deletion failed
+  optional string failure_message = 3;
+}
+
+enum AgentDeletedUpdateStatus {
+  AGENT_DELETED_UPDATE_STATUS_UNKNOWN = 0;
+  AGENT_DELETED_UPDATE_STATUS_SUCCESS = 1;
+  AGENT_DELETED_UPDATE_STATUS_FAILED = 2;
+}
+
+message CreateThreadCommand {
+  // Agent identifier to create the thread for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ThreadCreatedUpdate {
+  // Agent identifier that the thread was created for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier that was created provider specific
+  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message CreateTurnCommand {
+  // Agent identifier that the turn was created for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier that the turn was created for provider specific
+  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  // Text to send to the turn
+  string text = 3 [(buf.validate.field).string.min_len = 1];
+  // Model identifier passed to the selected SDK for message execution.
+  string model = 4 [(buf.validate.field).string.min_len = 1];
+  // Reasoning profile consumed by SDK-specific adapters when supported.
+  optional string model_reasoning_level = 5;
+}
+
+message TurnStartedUpdate {
+  // Agent identifier that the turn was created for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier that the turn was created for
+  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  // Turn identifier that was created
+  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+message TurnCompletedUpdate {
+  // Agent identifier that the turn was completed for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier that the turn was completed for
+  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  // Turn identifier that was completed
+  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+message SteerTurnCommand {
+  // Agent identifier that the turn was created for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier that the turn was created for
+  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  // Turn identifier that was created
+  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
+  // Message to send to the turn
+  string message = 4 [(buf.validate.field).string.min_len = 1];
+}
+
+message TurnSteeredUpdate {
+  // Agent identifier that the turn was created for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier that the turn was created for
+  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  // Turn identifier that was created
+  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+message ItemStartedUpdate {
+  // Agent identifier that the item was started for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier that the item was started for
+  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  // Turn identifier that the item was started for
+  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
+  // Item identifier that was started
+  string provider_item_id = 4 [(buf.validate.field).string.min_len = 1];
+  // Item type that was started
+  ItemType item_type = 5;
+  // message that was started
+  optional string text = 6;
+  // Command execution item that was started, if type is COMMAND_EXECUTION
+  optional CommandExecutionItem command_execution_item = 7;
+}
+
+message ItemCompletedUpdate {
+  // Agent identifier that the item was completed for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier that the item was completed for
+  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  // Turn identifier that the item was completed for
+  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
+  // Item identifier that was completed
+  string provider_item_id = 4 [(buf.validate.field).string.min_len = 1];
+  // Item type that was completed
+  ItemType item_type = 5;
+  // message that was completed
+  optional string text = 6;
+  // Command execution item that was completed, if type is COMMAND_EXECUTION
+  optional CommandExecutionItem command_execution_item = 7;
+}
+
+message CommandExecutionItem {
+  string command = 1 [(buf.validate.field).string.min_len = 1];
+  string cwd = 2 [(buf.validate.field).string.min_len = 1];
+  string process_id = 3 [(buf.validate.field).string.min_len = 1];
+  optional string output = 4;
+}
+
+enum ItemType {
+  ITEM_TYPE_UNKNOWN = 0;
+  USER_MESSAGE = 1;
+  AGENT_MESSAGE = 2;
+  REASONING = 4;
+  COMMAND_EXECUTION = 5;
+}
+
+message InstallSkillsMpCommand {
+  // Agent receiving the new skill package.
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Package coordinate the runner installer resolves/downloads.
+  string package_name = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message SkillMpInstalledUpdate {
+  // Agent receiving the installation result.
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Skill identifier this update belongs to.
+  string package_name = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+/************************************************/
+/* GITHUB INSTALLATION PROTOCOL                 */ 
+/************************************************/
+
+message GithubInstallationForRunner {
+  // GitHub App installation identifier stored on backend.
+  int64 installation_id = 1 [(buf.validate.field).int64.gte = 1];
+}
+
+// Empty because runner scope is inferred from authenticated caller.
+message ListGithubInstallationsForRunnerRequest {
+}
+
+message ListGithubInstallationsForRunnerResponse {
+  // Installations currently linked to this runner/account context.
+  repeated GithubInstallationForRunner installations = 1;
+}
+
+message GetGithubInstallationAccessTokenForRunnerRequest {
+  // Installation for which the runner is requesting a fresh token.
+  int64 installation_id = 1 [(buf.validate.field).int64.gte = 1];
+}
+
+message GetGithubInstallationAccessTokenForRunnerResponse {
+  // Echo of requested installation for client-side correlation.
+  int64 installation_id = 1 [(buf.validate.field).int64.gte = 1];
+  // Short-lived GitHub access token; treat as secret and do not persist.
+  string access_token = 2 [(buf.validate.field).string.min_len = 1];
+  // Expiry timestamp so callers can refresh proactively before 401s.
+  int64 access_token_expires_unix_time_ms = 3;
+  // Repository names/paths this token is authorized to access.
+  repeated string repositories = 4 [(buf.validate.field).string.min_len = 1];
+}

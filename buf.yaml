@@ -1,0 +1,19 @@
+version: v2
+
+modules:
+  - path: proto
+
+lint:
+  use:
+    - STANDARD
+  except:
+    - PACKAGE_DIRECTORY_MATCH
+    - PACKAGE_VERSION_SUFFIX
+    - RPC_REQUEST_STANDARD_NAME
+    - RPC_RESPONSE_STANDARD_NAME
+    - ENUM_ZERO_VALUE_SUFFIX
+    - ENUM_VALUE_PREFIX
+
+breaking:
+  use:
+    - FILE

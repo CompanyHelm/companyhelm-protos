@@ -1,0 +1,35 @@
+{
+  "name": "@companyhelm/protos-bindings",
+  "version": "0.1.0",
+  "description": "Buf-generated JavaScript bindings for CompanyHelm protobuf definitions.",
+  "license": "UNLICENSED",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "buf:lint": "buf lint",
+    "buf:generate": "buf generate",
+    "compile": "tsc -p tsconfig.generated.json",
+    "copy:protos": "node scripts/copy-protos.mjs",
+    "build": "npm run clean && npm run buf:generate && npm run compile && npm run copy:protos",
+    "verify": "npm run buf:lint && npm run build && npm pack --dry-run"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.10.1"
+  },
+  "devDependencies": {
+    "@bufbuild/buf": "^1.59.0",
+    "@bufbuild/protoc-gen-es": "^2.10.1",
+    "typescript": "^5.9.2"
+  }
+}

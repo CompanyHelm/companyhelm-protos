@@ -1,0 +1,31 @@
+name: publish-npm-package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  buf-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Buf lint checks
+        uses: bufbuild/buf-action@v1
+        with:
+          format: false
+          lint: true
+          breaking: false
+          push: false
+
+  publish:
+    needs:
+      - buf-check
+    uses: ./.github/workflows/reusable-npm-protos.yml
+    with:
+      publish: true
+    secrets:
+      npm_token: ${{ secrets.NPM_TOKEN }}

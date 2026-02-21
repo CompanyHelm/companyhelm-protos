@@ -1,0 +1,68 @@
+name: reusable-npm-protos
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: Node.js version used for install/build/publish.
+        required: false
+        type: string
+        default: "20"
+      publish:
+        description: Publish package to npmjs.com when true.
+        required: false
+        type: boolean
+        default: false
+      package-dir:
+        description: Directory that contains package.json.
+        required: false
+        type: string
+        default: "."
+    secrets:
+      npm_token:
+        required: false
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.package-dir }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+          cache-dependency-path: ${{ inputs.package-dir }}/package-lock.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build protobuf bindings
+        run: npm run build
+
+      - name: Pack npm tarball
+        run: npm pack
+
+      - name: Upload npm tarball artifact
+        if: ${{ !inputs.publish }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: ${{ inputs.package-dir }}/*.tgz
+
+      - name: Publish package to npmjs.com
+        if: ${{ inputs.publish }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+        run: npm publish --access public --provenance
+
