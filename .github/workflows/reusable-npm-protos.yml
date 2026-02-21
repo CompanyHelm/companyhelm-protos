@@ -1,6 +1,7 @@
 name: reusable-npm-protos
 
 on:
+  # Reusable workflow: called by build and publish entry workflows.
   workflow_call:
     inputs:
       node-version:
@@ -24,6 +25,7 @@ on:
 
 jobs:
   package:
+    # Single job that can run in "build-only" or "publish" mode.
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -37,6 +39,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node.js
+        # Configure npm registry auth for npmjs.com and enable lockfile-based caching.
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node-version }}
@@ -48,12 +51,15 @@ jobs:
         run: npm ci
 
       - name: Build protobuf bindings
+        # Runs Buf lint/generate + TypeScript compile via package scripts.
         run: npm run build
 
       - name: Pack npm tarball
+        # Always pack to verify the package contents before optional publishing.
         run: npm pack
 
       - name: Upload npm tarball artifact
+        # In build mode, keep the tarball as a CI artifact for inspection.
         if: ${{ !inputs.publish }}
         uses: actions/upload-artifact@v4
         with:
@@ -61,8 +67,8 @@ jobs:
           path: ${{ inputs.package-dir }}/*.tgz
 
       - name: Publish package to npmjs.com
+        # In publish mode, release to npmjs.com with provenance enabled.
         if: ${{ inputs.publish }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
         run: npm publish --access public --provenance
-

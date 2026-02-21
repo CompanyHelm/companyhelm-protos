@@ -1,6 +1,7 @@
 name: publish-npm-package
 
 on:
+  # Release flow: manual dispatch or version tag push.
   workflow_dispatch:
   push:
     tags:
@@ -8,6 +9,7 @@ on:
 
 jobs:
   buf-check:
+    # Enforce Buf checks before any release publish is attempted.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,6 +24,7 @@ jobs:
           push: false
 
   publish:
+    # Reuse shared pipeline in publish mode; expects repository secret NPM_TOKEN.
     needs:
       - buf-check
     uses: ./.github/workflows/reusable-npm-protos.yml
