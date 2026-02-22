@@ -29,6 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     defaults:
       run:
         shell: bash
@@ -65,9 +66,14 @@ jobs:
           name: npm-package
           path: ${{ inputs.package-dir }}/*.tgz
 
-      - name: Publish package to npmjs.com
-        # In publish mode, release to npmjs.com with provenance enabled.
-        if: ${{ inputs.publish }}
+      - name: Publish package to npmjs.com (trusted publisher)
+        # Default release path: npm trusted publishing via GitHub OIDC.
+        if: ${{ inputs.publish && secrets.npm_token == '' }}
+        run: npm publish --access public --provenance
+
+      - name: Publish package to npmjs.com (npm token)
+        # Optional fallback when npm_token is explicitly provided by caller.
+        if: ${{ inputs.publish && secrets.npm_token != '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
         run: npm publish --access public --provenance
