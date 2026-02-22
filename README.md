@@ -26,12 +26,7 @@ npm run build
 
 ## Publish
 
-Publishing to [@comapnyhelm/protos](https://www.npmjs.com/package/@companyhelm/protos) is automated by GitHub Actions:
-
-- Push a tag like `v1.2.3`, or
-- Trigger the `publish-npm-package` workflow manually.
-
-## Create a new version
+Publishing to [@companyhelm/protos](https://www.npmjs.com/package/@companyhelm/protos) is automated by GitHub Actions:
 
 ```
 npm version patch|minor|major
