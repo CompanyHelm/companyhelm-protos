@@ -28,11 +28,28 @@ jobs:
           push: false
 
   publish:
-    # Reuse shared pipeline in publish mode;
+    # Publish directly from this workflow so npm trusted publisher
+    # can match the configured workflow file path.
     needs:
       - buf-check
-    uses: ./.github/workflows/reusable-npm-protos.yml
-    with:
-      node-version: "22"
-      publish: true
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: package-lock.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build protobuf bindings
+        run: npm run build
+
+      - name: Publish package to npmjs.com
+        run: npm publish --access public --provenance
