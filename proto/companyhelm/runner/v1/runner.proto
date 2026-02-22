@@ -1,7 +1,7 @@
 syntax = "proto3";
 package companyhelm.runner.v1;
 
-import "agent_runner/proto/validate.proto";
+import "buf/validate/validate.proto";
 
 
 // Transport contract between backend control plane and runner clients.
@@ -309,5 +309,5 @@ message GetGithubInstallationAccessTokenForRunnerResponse {
   // Expiry timestamp so callers can refresh proactively before 401s.
   int64 access_token_expires_unix_time_ms = 3;
   // Repository names/paths this token is authorized to access.
-  repeated string repositories = 4 [(buf.validate.field).string.min_len = 1];
+  repeated string repositories = 4 [(buf.validate.field).repeated.items.string.min_len = 1];
 }
