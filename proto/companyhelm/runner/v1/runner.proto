@@ -23,24 +23,6 @@ service AgentRunnerControlService {
 }
 
 /************************************************/
-/* COMMON MESSAGES                              */ 
-/************************************************/
-
-// an instation of an agent
-message Agent {
-    // runner specific identifier of the agent
-    string id = 1 [(buf.validate.field).string.min_len = 1];
-    // name of the agent
-    string name = 2 [(buf.validate.field).string.min_len = 1];
-    // sdk used by the agent
-    string sdk = 3 [(buf.validate.field).string.min_len = 1];
-    // models supported by the agent
-    string model = 4 [(buf.validate.field).string.min_len = 1];
-    // reasoning level supported by the agent
-    string reasoning_level = 5 [(buf.validate.field).string.min_len = 1];
-}
-
-/************************************************/
 /* REGISTRATION PROTOCOL                        */ 
 /************************************************/
 
@@ -48,8 +30,6 @@ message Agent {
 message RegisterRunnerRequest {
   // agent sdks supported by the runner
   repeated AgentSdk agent_sdks = 1;
-  // agents curently installed on the runner
-  repeated Agent agents = 2;
 }
 
 message AgentSdk {
@@ -155,6 +135,10 @@ enum AgentDeletedUpdateStatus {
 message CreateThreadCommand {
   // Agent identifier to create the thread for
   string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // LLM model to use for the thread
+  string model = 2 [(buf.validate.field).string.min_len = 1];
+  // Optional, reasoning level to use for the thread
+  optional string reasoning_level = 3;
 }
 
 message ThreadCreatedUpdate {
