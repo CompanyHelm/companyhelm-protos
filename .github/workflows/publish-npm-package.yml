@@ -33,5 +33,6 @@ jobs:
       - buf-check
     uses: ./.github/workflows/reusable-npm-protos.yml
     with:
+      node-version: "22"
       publish: true
     secrets: inherit

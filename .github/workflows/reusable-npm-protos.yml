@@ -66,6 +66,15 @@ jobs:
           name: npm-package
           path: ${{ inputs.package-dir }}/*.tgz
 
+      - name: Ensure npm trusted publishing prerequisites
+        # npm trusted publishing requires modern Node.js and npm versions.
+        if: ${{ inputs.publish }}
+        run: |
+          node --version
+          npm --version
+          npm install --global npm@latest
+          npm --version
+
       - name: Publish package to npmjs.com (trusted publisher)
         # Release path: npm trusted publishing via GitHub OIDC.
         if: ${{ inputs.publish }}
