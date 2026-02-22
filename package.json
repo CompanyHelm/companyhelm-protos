@@ -2,7 +2,8 @@
   "name": "@companyhelm/protos",
   "version": "0.1.0",
   "description": "Buf-generated JavaScript bindings for CompanyHelm protobuf definitions.",
-  "license": "UNLICENSED",
+  "publishConfig": { "access": "public" },
+  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
