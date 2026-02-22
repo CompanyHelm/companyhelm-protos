@@ -2,6 +2,7 @@
   "name": "@companyhelm/protos",
   "version": "0.1.2",
   "description": "Buf-generated JavaScript bindings for CompanyHelm protobuf definitions.",
+  "url": "https://github.com/companyhelm/protos",
   "publishConfig": {
     "access": "public"
   },
