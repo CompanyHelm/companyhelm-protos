@@ -2,6 +2,11 @@
 
 NPM package source for CompanyHelm protobuf bindings, generated with Buf.
 
+Install package:
+```
+npm i @companyhelm/protos
+```
+
 ## Local build
 
 ```bash
@@ -21,9 +26,8 @@ npm run build
 
 ## Publish
 
-Publishing to [npmjs.com](https://www.npmjs.com/) is automated by GitHub Actions:
+Publishing to [@comapnyhelm/protos](https://www.npmjs.com/package/@companyhelm/protos) is automated by GitHub Actions:
 
 - Push a tag like `v1.2.3`, or
 - Trigger the `publish-npm-package` workflow manually.
 
-The workflow expects a repository secret named `NPM_TOKEN`.
