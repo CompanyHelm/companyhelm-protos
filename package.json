@@ -4,7 +4,7 @@
   "description": "Buf-generated JavaScript bindings for CompanyHelm protobuf definitions.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/companyhelm/protos"
+    "url": "git+https://github.com/CompanyHelm/companyhelm-protos.git"
   },
   "publishConfig": {
     "access": "public"
