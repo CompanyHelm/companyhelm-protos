@@ -31,3 +31,10 @@ Publishing to [@comapnyhelm/protos](https://www.npmjs.com/package/@companyhelm/p
 - Push a tag like `v1.2.3`, or
 - Trigger the `publish-npm-package` workflow manually.
 
+## Create a new version
+
+```
+npm version patch|minor|major
+``` 
+
+Then push changes, this will publish a new package with the version already bumped.
