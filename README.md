@@ -30,6 +30,7 @@ Publishing to [@companyhelm/protos](https://www.npmjs.com/package/@companyhelm/p
 
 ```bash
 npm version patch|minor|major
+git push --follow-tags
 ``` 
 
 Then push changes, this will publish a new package with the version already bumped.
