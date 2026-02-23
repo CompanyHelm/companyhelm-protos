@@ -28,7 +28,7 @@ npm run build
 
 Publishing to [@companyhelm/protos](https://www.npmjs.com/package/@companyhelm/protos) is automated by GitHub Actions:
 
-```
+```bash
 npm version patch|minor|major
 ``` 
 
