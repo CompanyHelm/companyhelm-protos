@@ -6,15 +6,15 @@ import "buf/validate/validate.proto";
 
 // Transport contract between backend control plane and runner clients.
 // RegisterRunner performs a capability handshake; CommandChannel carries
-// asynchronous commands and updates correlated by command_id.
+// asynchronous requests and updates correlated by request_id.
 service AgentRunnerControlService {
   // Called once when a runner connects so the server can decide whether this
-  // runner instance is allowed to participate in command processing.
+  // runner instance is allowed to participate in request processing.
   rpc RegisterRunner(RegisterRunnerRequest) returns (RegisterRunnerResponse);
   // Bidirectional stream used for the lifecycle of a connected runner.
   // Server pushes work; runner pushes updates/results.
   // Client initiated requests should have their own rpc call.
-  rpc CommandChannel(stream ClientMessage) returns (stream ServerMessage);
+  rpc ControlChannel(stream ClientMessage) returns (stream ServerMessage);
   // Runner-scoped list of GitHub App installations already associated with it.
   rpc ListGithubInstallationsForRunner(ListGithubInstallationsForRunnerRequest) returns (ListGithubInstallationsForRunnerResponse);
   // Mints a short-lived token for one installation so the runner can call
@@ -55,181 +55,74 @@ message RegisterRunnerResponse {
 }
 
 /************************************************/
-/* COMMAND PROTOCOL                             */ 
+/* CONTROL CHANNEL PROTOCOL                     */ 
 /************************************************/
 
-// Messages sent from runner to server over CommandChannel.
+// This is a response to a server request.
 message ClientMessage {
-  // Correlates this update/result with the originating ServerMessage command.
-  string command_id = 1 [(buf.validate.field).string.min_len = 1];
+  // not included for client generated updates
+  optional string request_id = 1;
   oneof payload {
-    AgentCreatedUpdate agent_created_update = 2;
-    AgentDeletedUpdate agent_deleted_update = 3;
-    ThreadCreatedUpdate thread_created_update = 4;
-    TurnStartedUpdate turn_started_update = 5;
-    TurnCompletedUpdate turn_completed_update = 6;
-    TurnSteeredUpdate turn_steered_update = 7;
-    SkillMpInstalledUpdate skill_mp_installed_update = 8;
-    CommandError command_error = 9;
+    RequestError request_error = 2;
+    AgentUpdate agent_update = 3;
+    ThreadUpdate thread_update = 4;
+    TurnUpdate turn_update = 5;
+    ItemUpdate item_update = 6;
+    SkillMpUpdate skill_mp_update = 7;
   }
 }
 
-// Messages sent from server to runner over CommandChannel.
-message ServerMessage {
-  // Correlation key echoed by ClientMessage.command_id in runner responses.
-  string command_id = 1 [(buf.validate.field).string.min_len = 1];
-  oneof command {
-    CreateAgentCommand create_agent_command = 2;
-    DeleteAgentCommand delete_agent_command = 3;
-    CreateThreadCommand create_thread_command = 4;
-    CreateTurnCommand create_turn_command = 5;
-    SteerTurnCommand steer_turn_command = 6;
-    InstallSkillsMpCommand install_skillsmp_command = 7;
-  }
+message RequestError {
+  string error_message = 1 [(buf.validate.field).string.min_len = 1];
 }
 
-message CommandError {
-  // Error message
-  string message = 1 [(buf.validate.field).string.min_len = 1];
+enum AgentStatus {
+  AGENT_STATUS_UNKNOWN = 0;
+  AGENT_STATUS_READY = 1;
+  AGENT_STATUS_DELETED = 2;
 }
 
-message CreateAgentCommand {
-  // Agent identifier to create
+message AgentUpdate {
   string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // SDK executor to use (for example codex/openai), chosen by control plane.
-  string agent_sdk = 2 [(buf.validate.field).string.min_len = 1];
+  AgentStatus status = 2; 
 }
 
-message AgentCreatedUpdate {
-  AgentCreatedUpdateStatus status = 1;
-  // Error message if the agent initialization failed
-  optional string failure_message = 2;
+enum ThreadStatus {
+  THREAD_STATUS_UNKNOWN = 0;
+  THREAD_STATUS_READY = 1;
+  THREAD_STATUS_DELETED = 2;
 }
 
-enum AgentCreatedUpdateStatus {
-  AGENT_CREATED_UPDATE_STATUS_UNKNOWN = 0;
-  AGENT_CREATED_UPDATE_STATUS_SUCCESS = 1;
-  AGENT_CREATED_UPDATE_STATUS_FAILED = 2;
+message ThreadUpdate {
+  string thread_id = 1 [(buf.validate.field).string.min_len = 1];
+  ThreadStatus status = 2;
 }
 
-message DeleteAgentCommand {
-  // Agent identifier to delete
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+enum TurnStatus {
+  TURN_STATUS_UNKNOWN = 0;
+  TURN_STATUS_RUNNING = 1;
+  TURN_STATUS_COMPLETED = 2;
 }
 
-message AgentDeletedUpdate {
-  // Agent identifier that was deleted
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Status of the agent deletion
-  AgentDeletedUpdateStatus status = 2;
-  // Error message if the agent deletion failed
-  optional string failure_message = 3;
+message TurnUpdate {
+  string sdk_turn_id = 1 [(buf.validate.field).string.min_len = 1];
+  TurnStatus status = 2;
 }
 
-enum AgentDeletedUpdateStatus {
-  AGENT_DELETED_UPDATE_STATUS_UNKNOWN = 0;
-  AGENT_DELETED_UPDATE_STATUS_SUCCESS = 1;
-  AGENT_DELETED_UPDATE_STATUS_FAILED = 2;
+enum ItemStatus {
+  ITEM_STATUS_UNKNOWN = 0;
+  ITEM_STATUS_RUNNING = 1;
+  ITEM_STATUS_COMPLETED = 2;
 }
 
-message CreateThreadCommand {
-  // Agent identifier to create the thread for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // LLM model to use for the thread
-  string model = 2 [(buf.validate.field).string.min_len = 1];
-  // Optional, reasoning level to use for the thread
-  optional string reasoning_level = 3;
-}
-
-message ThreadCreatedUpdate {
-  // Agent identifier that the thread was created for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Thread identifier that was created provider specific
-  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
-}
-
-message CreateTurnCommand {
-  // Agent identifier that the turn was created for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Thread identifier that the turn was created for provider specific
-  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
-  // Text to send to the turn
-  string text = 3 [(buf.validate.field).string.min_len = 1];
-  // Model identifier passed to the selected SDK for message execution.
-  string model = 4 [(buf.validate.field).string.min_len = 1];
-  // Reasoning profile consumed by SDK-specific adapters when supported.
-  optional string model_reasoning_level = 5;
-}
-
-message TurnStartedUpdate {
-  // Agent identifier that the turn was created for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Thread identifier that the turn was created for
-  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
-  // Turn identifier that was created
-  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
-}
-
-message TurnCompletedUpdate {
-  // Agent identifier that the turn was completed for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Thread identifier that the turn was completed for
-  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
-  // Turn identifier that was completed
-  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
-}
-
-message SteerTurnCommand {
-  // Agent identifier that the turn was created for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Thread identifier that the turn was created for
-  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
-  // Turn identifier that was created
-  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
-  // Message to send to the turn
-  string message = 4 [(buf.validate.field).string.min_len = 1];
-}
-
-message TurnSteeredUpdate {
-  // Agent identifier that the turn was created for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Thread identifier that the turn was created for
-  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
-  // Turn identifier that was created
-  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
-}
-
-message ItemStartedUpdate {
-  // Agent identifier that the item was started for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Thread identifier that the item was started for
-  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
-  // Turn identifier that the item was started for
-  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
-  // Item identifier that was started
-  string provider_item_id = 4 [(buf.validate.field).string.min_len = 1];
+message ItemUpdate {
+  string sdk_item_id = 1 [(buf.validate.field).string.min_len = 1];
+  ItemStatus status = 2;
   // Item type that was started
   ItemType item_type = 5;
-  // message that was started
+  // text of the itme
   optional string text = 6;
-  // Command execution item that was started, if type is COMMAND_EXECUTION
-  optional CommandExecutionItem command_execution_item = 7;
-}
-
-message ItemCompletedUpdate {
-  // Agent identifier that the item was completed for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Thread identifier that the item was completed for
-  string provider_thread_id = 2 [(buf.validate.field).string.min_len = 1];
-  // Turn identifier that the item was completed for
-  string provider_turn_id = 3 [(buf.validate.field).string.min_len = 1];
-  // Item identifier that was completed
-  string provider_item_id = 4 [(buf.validate.field).string.min_len = 1];
-  // Item type that was completed
-  ItemType item_type = 5;
-  // message that was completed
-  optional string text = 6;
-  // Command execution item that was completed, if type is COMMAND_EXECUTION
+  // Command execution item, if type is COMMAND_EXECUTION
   optional CommandExecutionItem command_execution_item = 7;
 }
 
@@ -248,17 +141,80 @@ enum ItemType {
   COMMAND_EXECUTION = 5;
 }
 
-message InstallSkillsMpCommand {
+enum SkillMpStatus {
+  SKILL_MP_STATUS_UNKNOWN = 0;
+  SKILL_MP_STATUS_INSTALLED = 1;
+  SKILL_MP_STATUS_DELETED = 2;
+}
+
+message SkillMpUpdate {
+  // Agent receiving the installation result.
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  SkillMpStatus status = 2;
+  // Skill identifier this update belongs to.
+  string package_name = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+// Messages sent from server to runner over ControlChannel.
+message ServerMessage {
+  oneof request {
+    CreateAgentRequest create_agent_request = 2;
+    DeleteAgentRequest delete_agent_request = 3;
+    CreateThreadRequest create_thread_request = 4;
+    DeleteThreadRequest delete_thread_request = 5;
+    CreateUserMessageRequest create_user_message_request = 6;
+    InstallSkillsMpRequest install_skills_mp_request = 7;
+  }
+}
+
+message CreateAgentRequest {
+  // Agent identifier to create
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // SDK executor to use (for example codex/openai), chosen by control plane.
+  string agent_sdk = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message DeleteAgentRequest {
+  // Agent identifier to delete
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message CreateThreadRequest {
+  // Agent identifier to create the thread for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // LLM model to use for the thread
+  string model = 2 [(buf.validate.field).string.min_len = 1];
+  // Optional, reasoning level to use for the thread
+  optional string reasoning_level = 3;
+}
+
+message DeleteThreadRequest {
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier to delete
+  string thread_id = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message CreateUserMessageRequest {
+  // Agent identifier that the turn was created for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier
+  string thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  // Text to send to the turn
+  string text = 3 [(buf.validate.field).string.min_len = 1];
+  // Whether to allow the current running turn to be steered
+  // If there are is a running turn and allows_steer is false the request will be rejected.
+  bool allow_steer = 6;
+  // Model identifier passed to the selected SDK for message execution.
+  optional string model = 4;
+  // Reasoning profile consumed by SDK-specific adapters when supported.
+  optional string model_reasoning_level = 5;
+}
+
+
+message InstallSkillsMpRequest {
   // Agent receiving the new skill package.
   string agent_id = 1 [(buf.validate.field).string.min_len = 1];
   // Package coordinate the runner installer resolves/downloads.
-  string package_name = 2 [(buf.validate.field).string.min_len = 1];
-}
-
-message SkillMpInstalledUpdate {
-  // Agent receiving the installation result.
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Skill identifier this update belongs to.
   string package_name = 2 [(buf.validate.field).string.min_len = 1];
 }
 
