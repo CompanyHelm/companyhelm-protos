@@ -15,11 +15,11 @@ service AgentRunnerControlService {
   // Server pushes work; runner pushes updates/results.
   // Client initiated requests should have their own rpc call.
   rpc ControlChannel(stream ClientMessage) returns (stream ServerMessage);
-  // Runner-scoped list of GitHub App installations already associated with it.
-  rpc ListGithubInstallationsForRunner(ListGithubInstallationsForRunnerRequest) returns (ListGithubInstallationsForRunnerResponse);
+  // list of GitHub App installations already associated with it.
+  rpc ListGithubInstallations(ListGithubInstallationsRequest) returns (ListGithubInstallationsResponse);
   // Mints a short-lived token for one installation so the runner can call
   // GitHub APIs without storing long-lived credentials.
-  rpc GetGithubInstallationAccessTokenForRunner(GetGithubInstallationAccessTokenForRunnerRequest) returns (GetGithubInstallationAccessTokenForRunnerResponse);
+  rpc GithubInstallationAccessToken(GithubInstallationAccessTokenRequest) returns (GithubInstallationAccessTokenResponse);
 }
 
 /************************************************/
@@ -230,26 +230,26 @@ message InterruptTurnRequest {
 /* GITHUB INSTALLATION PROTOCOL                 */ 
 /************************************************/
 
-message GithubInstallationForRunner {
+message GithubInstallation {
   // GitHub App installation identifier stored on backend.
   int64 installation_id = 1 [(buf.validate.field).int64.gte = 1];
 }
 
 // Empty because runner scope is inferred from authenticated caller.
-message ListGithubInstallationsForRunnerRequest {
+message ListGithubInstallationsRequest {
 }
 
-message ListGithubInstallationsForRunnerResponse {
+message ListGithubInstallationsResponse {
   // Installations currently linked to this runner/account context.
-  repeated GithubInstallationForRunner installations = 1;
+  repeated GithubInstallation installations = 1;
 }
 
-message GetGithubInstallationAccessTokenForRunnerRequest {
+message GithubInstallationAccessTokenRequest {
   // Installation for which the runner is requesting a fresh token.
   int64 installation_id = 1 [(buf.validate.field).int64.gte = 1];
 }
 
-message GetGithubInstallationAccessTokenForRunnerResponse {
+message GithubInstallationAccessTokenResponse {
   // Echo of requested installation for client-side correlation.
   int64 installation_id = 1 [(buf.validate.field).int64.gte = 1];
   // Short-lived GitHub access token; treat as secret and do not persist.
