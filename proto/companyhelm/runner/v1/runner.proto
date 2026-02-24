@@ -164,6 +164,7 @@ message ServerMessage {
     DeleteThreadRequest delete_thread_request = 5;
     CreateUserMessageRequest create_user_message_request = 6;
     InstallSkillsMpRequest install_skills_mp_request = 7;
+    InterruptTurnRequest interrupt_turn_request = 8;
   }
 }
 
@@ -216,6 +217,13 @@ message InstallSkillsMpRequest {
   string agent_id = 1 [(buf.validate.field).string.min_len = 1];
   // Package coordinate the runner installer resolves/downloads.
   string package_name = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message InterruptTurnRequest {
+  // Agent identifier that the turn was created for
+  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Thread identifier
+  string thread_id = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 /************************************************/
