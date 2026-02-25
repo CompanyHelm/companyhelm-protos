@@ -198,6 +198,8 @@ message CreateThreadRequest {
   optional string reasoning_level = 3;
   // Thread identifier to create
   string thread_id = 4 [(buf.validate.field).string.min_len = 1];
+  // Optional, additional model instructions to use for the thread
+  optional string additional_model_instructions = 5;
 }
 
 message DeleteThreadRequest {
