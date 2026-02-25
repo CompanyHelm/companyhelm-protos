@@ -107,6 +107,7 @@ enum TurnStatus {
 message TurnUpdate {
   string sdk_turn_id = 1 [(buf.validate.field).string.min_len = 1];
   TurnStatus status = 2;
+  string thread_id = 3 [(buf.validate.field).string.min_len = 1];
 }
 
 enum ItemStatus {
@@ -124,6 +125,8 @@ message ItemUpdate {
   optional string text = 6;
   // Command execution item, if type is COMMAND_EXECUTION
   optional CommandExecutionItem command_execution_item = 7;
+  string thread_id = 8 [(buf.validate.field).string.min_len = 1];
+  string sdk_turn_id = 9 [(buf.validate.field).string.min_len = 1];
 }
 
 message CommandExecutionItem {
