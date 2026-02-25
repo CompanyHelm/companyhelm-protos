@@ -69,6 +69,7 @@ message ClientMessage {
     TurnUpdate turn_update = 5;
     ItemUpdate item_update = 6;
     SkillMpUpdate skill_mp_update = 7;
+    ThreadNameUpdate thread_name_update = 8;
   }
 }
 
@@ -96,6 +97,11 @@ enum ThreadStatus {
 message ThreadUpdate {
   string thread_id = 1 [(buf.validate.field).string.min_len = 1];
   ThreadStatus status = 2;
+}
+
+message ThreadNameUpdate {
+  string thread_id = 1 [(buf.validate.field).string.min_len = 1];
+  optional string thread_name = 2; // define: absent => clear/unset
 }
 
 enum TurnStatus {
