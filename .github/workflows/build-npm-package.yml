@@ -24,6 +24,7 @@ jobs:
           lint: true
           breaking: false
           push: false
+          pr_comment: false
 
   build:
     # Build and package directly in this workflow.
