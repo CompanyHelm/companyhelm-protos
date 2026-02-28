@@ -209,6 +209,22 @@ message CreateThreadRequest {
   string thread_id = 4 [(buf.validate.field).string.min_len = 1];
   // Optional, additional model instructions to use for the thread
   optional string additional_model_instructions = 5;
+  // git skill packages to use for the thread
+  repeated ThreadGitSkillPackage git_skill_packages = 6;
+}
+
+message ThreadGitSkillPackage {
+  // URL of the repository to checkout
+  string repository_url = 1 [(buf.validate.field).string.min_len = 1];
+  // commit hash, branch name, or tag name to checkout
+  string commit_reference = 2 [(buf.validate.field).string.min_len = 1];
+  // skills to install/link
+  repeated ThreadGitSkill skills = 3;
+}
+
+message ThreadGitSkill {
+  // the skill directory path within the repository
+  string directory_path = 1 [(buf.validate.field).string.min_len = 1];
 }
 
 message DeleteThreadRequest {
