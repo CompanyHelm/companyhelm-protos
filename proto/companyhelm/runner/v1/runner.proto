@@ -68,7 +68,6 @@ message ClientMessage {
     ThreadUpdate thread_update = 4;
     TurnUpdate turn_update = 5;
     ItemUpdate item_update = 6;
-    SkillMpUpdate skill_mp_update = 7;
     ThreadNameUpdate thread_name_update = 8;
   }
 }
@@ -157,20 +156,6 @@ enum ItemType {
   ENTERED_REVIEW_MODE = 12;
   EXITED_REVIEW_MODE = 13;
   CONTEXT_COMPACTION = 14;
-}
-
-enum SkillMpStatus {
-  SKILL_MP_STATUS_UNKNOWN = 0;
-  SKILL_MP_STATUS_INSTALLED = 1;
-  SKILL_MP_STATUS_DELETED = 2;
-}
-
-message SkillMpUpdate {
-  // Agent receiving the installation result.
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  SkillMpStatus status = 2;
-  // Skill identifier this update belongs to.
-  string package_name = 3 [(buf.validate.field).string.min_len = 1];
 }
 
 // Messages sent from server to runner over ControlChannel.
