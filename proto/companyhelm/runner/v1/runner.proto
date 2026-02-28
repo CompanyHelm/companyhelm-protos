@@ -186,16 +186,52 @@ message DeleteAgentRequest {
 message CreateThreadRequest {
   // Agent identifier to create the thread for
   string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // LLM model to use for the thread
-  string model = 2 [(buf.validate.field).string.min_len = 1];
-  // Optional, reasoning level to use for the thread
-  optional string reasoning_level = 3;
   // Thread identifier to create
-  string thread_id = 4 [(buf.validate.field).string.min_len = 1];
+  string thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  // LLM model to use for the thread
+  string model = 3 [(buf.validate.field).string.min_len = 1];
+  // Optional, reasoning level to use for the thread
+  optional string reasoning_level = 4;
   // Optional, additional model instructions to use for the thread
   optional string additional_model_instructions = 5;
+  // Full MCP setup snapshot for thread bootstrap.
+  repeated ThreadMcpServer mcp_servers = 6;
   // git skill packages to use for the thread
-  repeated ThreadGitSkillPackage git_skill_packages = 6;
+  repeated ThreadGitSkillPackage git_skill_packages = 7;
+}
+
+enum ThreadMcpAuthType {
+  THREAD_MCP_AUTH_TYPE_UNSPECIFIED = 0;
+  THREAD_MCP_AUTH_TYPE_NONE = 1;
+  THREAD_MCP_AUTH_TYPE_BEARER_TOKEN = 2;
+}
+
+message ThreadMcpHeader {
+  string key = 1 [(buf.validate.field).string.min_len = 1];
+  string value = 2;
+}
+
+message ThreadMcpStdioConfig {
+  string command = 1 [(buf.validate.field).string.min_len = 1];
+  repeated string args = 2;
+  repeated ThreadMcpHeader env_vars = 3;
+}
+
+message ThreadMcpStreamableHttpConfig {
+  string url = 1 [(buf.validate.field).string.min_len = 1];
+  ThreadMcpAuthType auth_type = 2;
+  optional string bearer_token = 3;
+  repeated ThreadMcpHeader headers = 4;
+}
+
+message ThreadMcpServer {
+  string server_id = 1 [(buf.validate.field).string.min_len = 1];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+
+  oneof transport_config {
+    ThreadMcpStdioConfig stdio = 3;
+    ThreadMcpStreamableHttpConfig streamable_http = 4;
+  }
 }
 
 message ThreadGitSkillPackage {
