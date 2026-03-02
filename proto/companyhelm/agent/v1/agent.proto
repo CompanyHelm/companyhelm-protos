@@ -9,6 +9,8 @@ service AgentTaskService {
   rpc GetTaskDetails(GetTaskDetailsRequest) returns (GetTaskDetailsResponse);
   // Returns dependency-backed sub tasks for the given task.
   rpc ListSubTasks(ListSubTasksRequest) returns (ListSubTasksResponse);
+  // Returns comments for the given task.
+  rpc ListTaskComments(ListTaskCommentsRequest) returns (ListTaskCommentsResponse);
   // Updates task status only.
   rpc UpdateTaskStatus(UpdateTaskStatusRequest) returns (UpdateTaskStatusResponse);
   // Adds a comment to a task.
@@ -67,6 +69,14 @@ message ListSubTasksRequest {
 
 message ListSubTasksResponse {
   repeated SubTask sub_tasks = 1;
+}
+
+message ListTaskCommentsRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ListTaskCommentsResponse {
+  repeated TaskComment comments = 1;
 }
 
 message UpdateTaskStatusRequest {
