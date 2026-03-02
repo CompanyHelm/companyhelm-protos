@@ -198,6 +198,8 @@ message CreateThreadRequest {
   repeated ThreadMcpServer mcp_servers = 6;
   // git skill packages to use for the thread
   repeated ThreadGitSkillPackage git_skill_packages = 7;
+  // thread secret for agent cli calls
+  string cli_secret = 8 [(buf.validate.field).string.min_len = 1];
 }
 
 enum ThreadMcpAuthType {
