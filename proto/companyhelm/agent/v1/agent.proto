@@ -46,12 +46,6 @@ message TaskComment {
   google.protobuf.Timestamp updated_at = 6;
 }
 
-message SubTask {
-  // Dependency task record for the requested task.
-  Task task = 1;
-  bool is_blocking = 2;
-}
-
 message GetTaskDetailsRequest {
   string task_id = 1 [(buf.validate.field).string.min_len = 1];
 }
@@ -68,7 +62,7 @@ message ListSubTasksRequest {
 }
 
 message ListSubTasksResponse {
-  repeated SubTask sub_tasks = 1;
+  repeated Task tasks = 1;
 }
 
 message ListTaskCommentsRequest {
