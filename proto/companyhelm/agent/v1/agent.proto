@@ -7,6 +7,10 @@ import "google/protobuf/timestamp.proto";
 service AgentTaskService {
   // Returns core task details.
   rpc GetTaskDetails(GetTaskDetailsRequest) returns (GetTaskDetailsResponse);
+  // Returns direct dependency tasks for the given task.
+  rpc ListTaskDependencies(ListTaskDependenciesRequest) returns (ListTaskDependenciesResponse);
+  // Returns tasks that directly depend on the given task.
+  rpc ListDependentTasks(ListDependentTasksRequest) returns (ListDependentTasksResponse);
   // Returns dependency-backed sub tasks for the given task.
   rpc ListSubTasks(ListSubTasksRequest) returns (ListSubTasksResponse);
   // Returns comments for the given task.
@@ -52,6 +56,22 @@ message GetTaskDetailsRequest {
 
 message GetTaskDetailsResponse {
   Task task = 1;
+}
+
+message ListTaskDependenciesRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ListTaskDependenciesResponse {
+  repeated Task tasks = 1;
+}
+
+message ListDependentTasksRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ListDependentTasksResponse {
+  repeated Task tasks = 1;
 }
 
 message ListSubTasksRequest {
