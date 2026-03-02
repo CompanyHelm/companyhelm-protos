@@ -2,15 +2,87 @@ syntax = "proto3";
 package companyhelm.agent.v1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
 
-service AgentControlService {
-    rpc HelloWorld(HelloWorldRequest) returns (HelloWorldResponse);
+service AgentTaskService {
+  // Returns core task details.
+  rpc GetTaskDetails(GetTaskDetailsRequest) returns (GetTaskDetailsResponse);
+  // Returns dependency-backed sub tasks for the given task.
+  rpc ListSubTasks(ListSubTasksRequest) returns (ListSubTasksResponse);
+  // Updates task status only.
+  rpc UpdateTaskStatus(UpdateTaskStatusRequest) returns (UpdateTaskStatusResponse);
+  // Adds a comment to a task.
+  rpc AddTaskComment(AddTaskCommentRequest) returns (AddTaskCommentResponse);
 }
 
-message HelloWorldRequest {
-    string name = 1 [(buf.validate.field).string.min_len = 1];
+enum TaskStatus {
+  TASK_STATUS_UNSPECIFIED = 0;
+  TASK_STATUS_DRAFT = 1;
+  TASK_STATUS_PENDING = 2;
+  TASK_STATUS_IN_PROGRESS = 3;
+  TASK_STATUS_COMPLETED = 4;
 }
 
-message HelloWorldResponse {
-    string message = 1 [(buf.validate.field).string.min_len = 1];
+message Task {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  optional string description = 3;
+  optional string acceptance_criteria = 4;
+  optional string assignee_principal_id = 5;
+  optional string thread_id = 6;
+  TaskStatus status = 7 [(buf.validate.field).enum.defined_only = true];
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message TaskComment {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+  string task_id = 2 [(buf.validate.field).string.min_len = 1];
+  string comment = 3 [(buf.validate.field).string.min_len = 1];
+  string author_principal_id = 4 [(buf.validate.field).string.min_len = 1];
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message SubTask {
+  // Dependency task record for the requested task.
+  Task task = 1;
+  bool is_blocking = 2;
+}
+
+message GetTaskDetailsRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetTaskDetailsResponse {
+  Task task = 1;
+}
+
+message ListSubTasksRequest {
+  // Parent task id from tasks.id.
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+  // If true, includes dependencies where is_blocking is false.
+  bool include_non_blocking = 2;
+}
+
+message ListSubTasksResponse {
+  repeated SubTask sub_tasks = 1;
+}
+
+message UpdateTaskStatusRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+  TaskStatus status = 2 [(buf.validate.field).enum.defined_only = true];
+}
+
+message UpdateTaskStatusResponse {
+  Task task = 1;
+}
+
+message AddTaskCommentRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+  string comment = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message AddTaskCommentResponse {
+  TaskComment comment = 1;
 }
