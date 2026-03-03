@@ -7,6 +7,8 @@ import "google/protobuf/timestamp.proto";
 service AgentTaskService {
   // Creates a new task.
   rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
+  // Returns paginated tasks for the caller's company.
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
   // Returns core task details.
   rpc GetTaskDetails(GetTaskDetailsRequest) returns (GetTaskDetailsResponse);
   // Adds a dependency edge to a task.
@@ -80,6 +82,19 @@ message GetTaskDetailsRequest {
 
 message GetTaskDetailsResponse {
   Task task = 1;
+}
+
+message ListTasksRequest {
+  // Maximum number of tasks to return. Zero lets the server pick a default.
+  int32 page_size = 1 [(buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  // Opaque cursor from a previous ListTasksResponse.next_page_token value.
+  string page_token = 2;
+}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+  // Opaque cursor to retrieve the next page. Empty when there are no more results.
+  string next_page_token = 2;
 }
 
 message AddTaskDependencyRequest {
