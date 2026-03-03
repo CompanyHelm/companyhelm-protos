@@ -5,8 +5,12 @@ import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
 service AgentTaskService {
+  // Creates a new task.
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
   // Returns core task details.
   rpc GetTaskDetails(GetTaskDetailsRequest) returns (GetTaskDetailsResponse);
+  // Adds a dependency edge to a task.
+  rpc AddTaskDependency(AddTaskDependencyRequest) returns (AddTaskDependencyResponse);
   // Returns direct dependency tasks for the given task.
   rpc ListTaskDependencies(ListTaskDependenciesRequest) returns (ListTaskDependenciesResponse);
   // Returns tasks that directly depend on the given task.
@@ -39,6 +43,12 @@ message Task {
   TaskStatus status = 7 [(buf.validate.field).enum.defined_only = true];
   google.protobuf.Timestamp created_at = 8;
   google.protobuf.Timestamp updated_at = 9;
+  optional string parent_task_id = 10;
+}
+
+message TaskDependency {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+  string dependency_task_id = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message TaskComment {
@@ -50,12 +60,34 @@ message TaskComment {
   google.protobuf.Timestamp updated_at = 6;
 }
 
+message CreateTaskRequest {
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+  optional string description = 2;
+  optional string acceptance_criteria = 3;
+  optional string assignee_principal_id = 4;
+  optional string thread_id = 5;
+  optional string parent_task_id = 6;
+}
+
+message CreateTaskResponse {
+  Task task = 1;
+}
+
 message GetTaskDetailsRequest {
   string task_id = 1 [(buf.validate.field).string.min_len = 1];
 }
 
 message GetTaskDetailsResponse {
   Task task = 1;
+}
+
+message AddTaskDependencyRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+  string dependency_task_id = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message AddTaskDependencyResponse {
+  TaskDependency dependency = 1;
 }
 
 message ListTaskDependenciesRequest {
@@ -77,8 +109,6 @@ message ListDependentTasksResponse {
 message ListSubTasksRequest {
   // Parent task id from tasks.id.
   string task_id = 1 [(buf.validate.field).string.min_len = 1];
-  // If true, includes dependencies where is_blocking is false.
-  bool include_non_blocking = 2;
 }
 
 message ListSubTasksResponse {
