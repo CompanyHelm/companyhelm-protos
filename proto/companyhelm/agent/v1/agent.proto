@@ -67,8 +67,7 @@ message CreateTaskRequest {
   optional string assignee_principal_id = 4;
   optional string thread_id = 5;
   optional string parent_task_id = 6;
-  string company_id = 7 [(buf.validate.field).string.min_len = 1];
-  TaskStatus status = 8 [(buf.validate.field).enum.defined_only = true];
+  TaskStatus status = 7 [(buf.validate.field).enum.defined_only = true];
 }
 
 message CreateTaskResponse {
