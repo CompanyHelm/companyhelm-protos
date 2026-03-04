@@ -64,7 +64,6 @@ message ClientMessage {
   optional string request_id = 1;
   oneof payload {
     RequestError request_error = 2;
-    AgentUpdate agent_update = 3;
     ThreadUpdate thread_update = 4;
     TurnUpdate turn_update = 5;
     ItemUpdate item_update = 6;
@@ -74,17 +73,6 @@ message ClientMessage {
 
 message RequestError {
   string error_message = 1 [(buf.validate.field).string.min_len = 1];
-}
-
-enum AgentStatus {
-  AGENT_STATUS_UNKNOWN = 0;
-  AGENT_STATUS_READY = 1;
-  AGENT_STATUS_DELETED = 2;
-}
-
-message AgentUpdate {
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  AgentStatus status = 2; 
 }
 
 enum ThreadStatus {
@@ -161,31 +149,14 @@ enum ItemType {
 // Messages sent from server to runner over ControlChannel.
 message ServerMessage {
   oneof request {
-    CreateAgentRequest create_agent_request = 2;
-    DeleteAgentRequest delete_agent_request = 3;
     CreateThreadRequest create_thread_request = 4;
     DeleteThreadRequest delete_thread_request = 5;
     CreateUserMessageRequest create_user_message_request = 6;
-    InstallSkillsMpRequest install_skills_mp_request = 7;
     InterruptTurnRequest interrupt_turn_request = 8;
   }
 }
 
-message CreateAgentRequest {
-  // Agent identifier to create
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // SDK executor to use (for example codex/openai), chosen by control plane.
-  string agent_sdk = 2 [(buf.validate.field).string.min_len = 1];
-}
-
-message DeleteAgentRequest {
-  // Agent identifier to delete
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-}
-
 message CreateThreadRequest {
-  // Agent identifier to create the thread for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
   // Thread identifier to create
   string thread_id = 2 [(buf.validate.field).string.min_len = 1];
   // LLM model to use for the thread
@@ -251,14 +222,11 @@ message ThreadGitSkill {
 }
 
 message DeleteThreadRequest {
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
   // Thread identifier to delete
   string thread_id = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message CreateUserMessageRequest {
-  // Agent identifier that the turn was created for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
   // Thread identifier
   string thread_id = 2 [(buf.validate.field).string.min_len = 1];
   // Text to send to the turn
@@ -273,16 +241,7 @@ message CreateUserMessageRequest {
 }
 
 
-message InstallSkillsMpRequest {
-  // Agent receiving the new skill package.
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Package coordinate the runner installer resolves/downloads.
-  string package_name = 2 [(buf.validate.field).string.min_len = 1];
-}
-
 message InterruptTurnRequest {
-  // Agent identifier that the turn was created for
-  string agent_id = 1 [(buf.validate.field).string.min_len = 1];
   // Thread identifier
   string thread_id = 2 [(buf.validate.field).string.min_len = 1];
 }
