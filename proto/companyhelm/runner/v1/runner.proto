@@ -152,7 +152,6 @@ message ServerMessage {
     CreateThreadRequest create_thread_request = 4;
     DeleteThreadRequest delete_thread_request = 5;
     CreateUserMessageRequest create_user_message_request = 6;
-    InstallSkillsMpRequest install_skills_mp_request = 7;
     InterruptTurnRequest interrupt_turn_request = 8;
   }
 }
@@ -241,13 +240,6 @@ message CreateUserMessageRequest {
   optional string model_reasoning_level = 5;
 }
 
-
-message InstallSkillsMpRequest {
-  // Thread receiving the new skill package.
-  string thread_id = 1 [(buf.validate.field).string.min_len = 1];
-  // Package coordinate the runner installer resolves/downloads.
-  string package_name = 2 [(buf.validate.field).string.min_len = 1];
-}
 
 message InterruptTurnRequest {
   // Thread identifier
