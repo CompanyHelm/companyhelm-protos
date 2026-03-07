@@ -36,12 +36,14 @@ enum TaskStatus {
 }
 
 message Task {
+  reserved 6;
+  reserved "thread_id";
+
   string id = 1 [(buf.validate.field).string.min_len = 1];
   string name = 2 [(buf.validate.field).string.min_len = 1];
   optional string description = 3;
   optional string acceptance_criteria = 4;
   optional string assignee_principal_id = 5;
-  optional string thread_id = 6;
   TaskStatus status = 7 [(buf.validate.field).enum.defined_only = true];
   google.protobuf.Timestamp created_at = 8;
   google.protobuf.Timestamp updated_at = 9;
@@ -63,11 +65,13 @@ message TaskComment {
 }
 
 message CreateTaskRequest {
+  reserved 5;
+  reserved "thread_id";
+
   string name = 1 [(buf.validate.field).string.min_len = 1];
   optional string description = 2;
   optional string acceptance_criteria = 3;
   optional string assignee_principal_id = 4;
-  optional string thread_id = 5;
   optional string parent_task_id = 6;
   TaskStatus status = 7 [(buf.validate.field).enum.defined_only = true];
 }
