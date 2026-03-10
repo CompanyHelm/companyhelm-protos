@@ -1,6 +1,6 @@
 {
   "name": "@companyhelm/protos",
-  "version": "0.5.14",
+  "version": "0.5.15",
   "description": "Buf-generated JavaScript bindings for CompanyHelm protobuf definitions.",
   "repository": {
     "type": "git",
