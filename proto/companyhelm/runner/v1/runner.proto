@@ -32,11 +32,19 @@ message RegisterRunnerRequest {
   repeated AgentSdk agent_sdks = 1;
 }
 
+enum AgentSdkStatus {
+  AGENT_SDK_STATUS_UNSPECIFIED = 0;
+  AGENT_SDK_STATUS_UNCONFIGURED = 1;
+  AGENT_SDK_STATUS_READY = 2;
+}
+
 message AgentSdk {
   // name of the sdk, e.g. Codex, Claude Code, etc
   string name = 1 [(buf.validate.field).string.min_len = 1];
   // models supported by the sdk
   repeated LLMModel models = 2;
+  // status of the sdk
+  AgentSdkStatus status = 3;
 }
 
 message LLMModel {
@@ -68,7 +76,11 @@ message ClientMessage {
     TurnUpdate turn_update = 5;
     ItemUpdate item_update = 6;
     ThreadNameUpdate thread_name_update = 8;
+    KeepAliveResponse keep_alive_response = 9;
   }
+}
+
+message KeepAliveResponse {
 }
 
 message RequestError {
@@ -153,7 +165,11 @@ message ServerMessage {
     DeleteThreadRequest delete_thread_request = 5;
     CreateUserMessageRequest create_user_message_request = 6;
     InterruptTurnRequest interrupt_turn_request = 8;
+    KeepAliveRequest keep_alive_request = 9;
   }
+}
+
+message KeepAliveRequest {
 }
 
 message CreateThreadRequest {
