@@ -76,11 +76,11 @@ message ClientMessage {
     TurnUpdate turn_update = 5;
     ItemUpdate item_update = 6;
     ThreadNameUpdate thread_name_update = 8;
-    KeepAliveResponse keep_alive_response = 9;
+    HeartbeatResponse heartbeat_response = 9;
   }
 }
 
-message KeepAliveResponse {
+message HeartbeatResponse {
 }
 
 message RequestError {
@@ -165,11 +165,11 @@ message ServerMessage {
     DeleteThreadRequest delete_thread_request = 5;
     CreateUserMessageRequest create_user_message_request = 6;
     InterruptTurnRequest interrupt_turn_request = 8;
-    KeepAliveRequest keep_alive_request = 9;
+    HeartbeatRequest heartbeat_request = 9;
   }
 }
 
-message KeepAliveRequest {
+message HeartbeatRequest {
 }
 
 message CreateThreadRequest {
