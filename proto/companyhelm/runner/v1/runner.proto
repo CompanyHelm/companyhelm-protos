@@ -77,7 +77,18 @@ message ClientMessage {
     ItemUpdate item_update = 6;
     ThreadNameUpdate thread_name_update = 8;
     HeartbeatResponse heartbeat_response = 9;
+    SdkUpdate sdk_update = 10;
+    CodexDeviceCode codex_device_code = 11;
   }
+}
+
+message SdkUpdate {
+  string sdk_id = 1 [(buf.validate.field).string.min_len = 1];
+  AgentSdkStatus status = 2;
+}
+
+message CodexDeviceCode {
+  string device_code = 1 [(buf.validate.field).string.min_len = 1];
 }
 
 message HeartbeatResponse {
@@ -166,7 +177,19 @@ message ServerMessage {
     CreateUserMessageRequest create_user_message_request = 6;
     InterruptTurnRequest interrupt_turn_request = 8;
     HeartbeatRequest heartbeat_request = 9;
+    CodexConfigurationRequest codex_configuration_request = 10;
   }
+}
+
+enum CodexAuthType {
+  CODEX_AUTH_TYPE_UNSPECIFIED = 0;
+  CODEX_AUTH_TYPE_DEVICE_CODE = 1;
+  CODEX_AUTH_TYPE_API_KEY = 2;
+}
+
+message CodexConfigurationRequest {
+  CodexAuthType auth_type = 1;
+  optional string codex_api_key = 2;
 }
 
 message HeartbeatRequest {
