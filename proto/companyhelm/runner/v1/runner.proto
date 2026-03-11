@@ -36,6 +36,7 @@ enum AgentSdkStatus {
   AGENT_SDK_STATUS_UNSPECIFIED = 0;
   AGENT_SDK_STATUS_UNCONFIGURED = 1;
   AGENT_SDK_STATUS_READY = 2;
+  AGENT_SDK_STATUS_ERROR = 3;
 }
 
 message AgentSdk {
@@ -45,6 +46,8 @@ message AgentSdk {
   repeated LLMModel models = 2;
   // status of the sdk
   AgentSdkStatus status = 3;
+  // error message if the sdk is in error state
+  optional string error_message = 4;
 }
 
 message LLMModel {
@@ -77,15 +80,9 @@ message ClientMessage {
     ItemUpdate item_update = 6;
     ThreadNameUpdate thread_name_update = 8;
     HeartbeatResponse heartbeat_response = 9;
-    SdkUpdate sdk_update = 10;
+    AgentSdk agent_sdk_update = 10;
     CodexDeviceCode codex_device_code = 11;
   }
-}
-
-message SdkUpdate {
-  string sdk_id = 1 [(buf.validate.field).string.min_len = 1];
-  AgentSdkStatus status = 2;
-  repeated LLMModel models = 3;
 }
 
 message CodexDeviceCode {
