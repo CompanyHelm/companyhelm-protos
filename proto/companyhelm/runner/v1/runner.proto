@@ -85,6 +85,7 @@ message ClientMessage {
 message SdkUpdate {
   string sdk_id = 1 [(buf.validate.field).string.min_len = 1];
   AgentSdkStatus status = 2;
+  repeated LLMModel models = 3;
 }
 
 message CodexDeviceCode {
