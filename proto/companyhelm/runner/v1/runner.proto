@@ -169,6 +169,7 @@ enum ItemType {
 
 // Messages sent from server to runner over ControlChannel.
 message ServerMessage {
+  string request_id = 1 [(buf.validate.field).string.min_len = 1];
   oneof request {
     CreateThreadRequest create_thread_request = 4;
     DeleteThreadRequest delete_thread_request = 5;
