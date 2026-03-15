@@ -25,16 +25,6 @@ service AgentTaskService {
   rpc UpdateTaskStatus(UpdateTaskStatusRequest) returns (UpdateTaskStatusResponse);
   // Adds a comment to a task.
   rpc AddTaskComment(AddTaskCommentRequest) returns (AddTaskCommentResponse);
-  // update task 
-  rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse);
-  // delete task
-  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);
-  // list task comments
-  rpc ListTaskComments(ListTaskCommentsRequest) returns (ListTaskCommentsResponse);
-  // add task comment
-  rpc AddTaskComment(AddTaskCommentRequest) returns (AddTaskCommentResponse);
-  // execute task
-  rpc ExecuteTask(ExecuteTaskRequest) returns (ExecuteTaskResponse);
 }
 
 enum TaskStatus {
@@ -43,14 +33,6 @@ enum TaskStatus {
   TASK_STATUS_PENDING = 2;
   TASK_STATUS_IN_PROGRESS = 3;
   TASK_STATUS_COMPLETED = 4;
-}
-
-message ExecuteTaskRequest {
-  string task_id = 1 [(buf.validate.field).string.min_len = 1];
-}
-
-message ExecuteTaskResponse {
-  Task task = 1;
 }
 
 message Task {
@@ -64,16 +46,6 @@ message Task {
   google.protobuf.Timestamp created_at = 8;
   google.protobuf.Timestamp updated_at = 9;
   optional string parent_task_id = 10;
-}
-
-message UpdateTaskRequest {
-  string id = 1 [(buf.validate.field).string.min_len = 1];
-  optional string name = 2;
-  optional string description = 3;
-  optional string acceptance_criteria = 4;
-  optional string assignee_principal_id = 5;
-  optional string parent_task_id = 6;
-  TaskStatus status = 7 [(buf.validate.field).enum.defined_only = true];
 }
 
 message TaskDependency {
