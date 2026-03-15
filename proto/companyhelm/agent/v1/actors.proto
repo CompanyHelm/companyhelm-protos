@@ -2,7 +2,6 @@ syntax = "proto3";
 package companyhelm.agent.v1;
 
 import "buf/validate/validate.proto";
-import "google/protobuf/timestamp.proto";
 
 service AgentActorService {
   // Creates a new task.
