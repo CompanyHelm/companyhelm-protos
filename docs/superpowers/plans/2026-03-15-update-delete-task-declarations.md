@@ -1,8 +1,8 @@
-# Update/Delete Task Declarations Implementation Plan
+# Update/Delete/Execute Task Declarations Implementation Plan
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Re-add `UpdateTask` and `DeleteTask` protobuf declarations with complete message definitions while keeping the change declaration-only.
+**Goal:** Re-add `UpdateTask`, `DeleteTask`, and `ExecuteTask` protobuf declarations with complete message definitions while keeping the change declaration-only.
 
 **Architecture:** Update the `AgentTaskService` contract in `agent.proto` and add the corresponding request/response messages so Buf generation succeeds. Verify the package end-to-end with the existing `npm run verify` pipeline and update the open PR branch only.
 
@@ -21,7 +21,8 @@
 Create a Node-based test that imports the generated `agent_pb.js` module from the built package output and asserts:
 - `AgentTaskService.method.updateTask` exists
 - `AgentTaskService.method.deleteTask` exists
-- `UpdateTaskRequestSchema`, `UpdateTaskResponseSchema`, `DeleteTaskRequestSchema`, and `DeleteTaskResponseSchema` exist
+- `AgentTaskService.method.executeTask` exists
+- `UpdateTaskRequestSchema`, `UpdateTaskResponseSchema`, `DeleteTaskRequestSchema`, `DeleteTaskResponseSchema`, `ExecuteTaskRequestSchema`, and `ExecuteTaskResponseSchema` exist
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -38,14 +39,17 @@ Expected: FAIL because the generated module does not yet expose the re-added RPC
 Add back:
 - `rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse);`
 - `rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);`
+- `rpc ExecuteTask(ExecuteTaskRequest) returns (ExecuteTaskResponse);`
 
 Add:
 - `message UpdateTaskRequest`
 - `message UpdateTaskResponse`
 - `message DeleteTaskRequest`
 - `message DeleteTaskResponse`
+- `message ExecuteTaskRequest`
+- `message ExecuteTaskResponse`
 
-Keep `ListTaskComments` and `AddTaskComment` single-defined and do not re-add `ExecuteTask`.
+Keep `ListTaskComments` and `AddTaskComment` single-defined.
 
 - [ ] **Step 2: Run generation to materialize the contract**
 

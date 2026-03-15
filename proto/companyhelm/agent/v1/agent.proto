@@ -27,6 +27,8 @@ service AgentTaskService {
   rpc UpdateTaskStatus(UpdateTaskStatusRequest) returns (UpdateTaskStatusResponse);
   // Deletes a task.
   rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);
+  // Executes a task.
+  rpc ExecuteTask(ExecuteTaskRequest) returns (ExecuteTaskResponse);
   // Adds a comment to a task.
   rpc AddTaskComment(AddTaskCommentRequest) returns (AddTaskCommentResponse);
 }
@@ -175,6 +177,14 @@ message DeleteTaskRequest {
 
 message DeleteTaskResponse {
   string task_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ExecuteTaskRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ExecuteTaskResponse {
+  Task task = 1;
 }
 
 message AddTaskCommentRequest {
