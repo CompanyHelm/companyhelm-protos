@@ -1,0 +1,81 @@
+syntax = "proto3";
+package companyhelm.agent.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+service AgentQuestionService {
+  // Creates a new question for a thread.
+  rpc CreateQuestion(CreateQuestionRequest) returns (CreateQuestionResponse);
+  // Returns paginated questions for the caller's company.
+  rpc ListQuestions(ListQuestionsRequest) returns (ListQuestionsResponse);
+  // Returns full question details.
+  rpc GetQuestion(GetQuestionRequest) returns (GetQuestionResponse);
+}
+
+enum QuestionStatus {
+  QUESTION_STATUS_UNSPECIFIED = 0;
+  QUESTION_STATUS_PENDING = 1;
+  QUESTION_STATUS_ANSWERED = 2;
+  QUESTION_STATUS_DISMISSED = 3;
+}
+
+message QuestionOption {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+  string label = 2 [(buf.validate.field).string.min_len = 1];
+  optional string description = 3;
+  int32 rank = 4 [(buf.validate.field).int32.gte = 0];
+}
+
+message Question {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+  string thread_id = 2 [(buf.validate.field).string.min_len = 1];
+  string prompt = 3 [(buf.validate.field).string.min_len = 1];
+  repeated QuestionOption options = 4;
+  QuestionStatus status = 5 [(buf.validate.field).enum.defined_only = true];
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  optional string selected_option_id = 8;
+  optional google.protobuf.Timestamp answered_at = 9;
+}
+
+message CreateQuestionOption {
+  string label = 1 [(buf.validate.field).string.min_len = 1];
+  optional string description = 2;
+  int32 rank = 3 [(buf.validate.field).int32.gte = 0];
+}
+
+message CreateQuestionRequest {
+  string thread_id = 1 [(buf.validate.field).string.min_len = 1];
+  string prompt = 2 [(buf.validate.field).string.min_len = 1];
+  repeated CreateQuestionOption options = 3;
+}
+
+message CreateQuestionResponse {
+  Question question = 1;
+}
+
+message ListQuestionsRequest {
+  // Maximum number of questions to return. Zero lets the server pick a default.
+  int32 page_size = 1 [(buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  // Opaque cursor from a previous ListQuestionsResponse.next_page_token value.
+  string page_token = 2;
+  // Optional thread filter.
+  optional string thread_id = 3;
+  // Optional status filter. Unspecified means no status filter.
+  QuestionStatus status = 4 [(buf.validate.field).enum.defined_only = true];
+}
+
+message ListQuestionsResponse {
+  repeated Question questions = 1;
+  // Opaque cursor to retrieve the next page. Empty when there are no more results.
+  string next_page_token = 2;
+}
+
+message GetQuestionRequest {
+  string question_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetQuestionResponse {
+  Question question = 1;
+}

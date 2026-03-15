@@ -29,10 +29,6 @@ service AgentTaskService {
   rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse);
   // delete task
   rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);
-  // list task comments
-  rpc ListTaskComments(ListTaskCommentsRequest) returns (ListTaskCommentsResponse);
-  // add task comment
-  rpc AddTaskComment(AddTaskCommentRequest) returns (AddTaskCommentResponse);
   // execute task
   rpc ExecuteTask(ExecuteTaskRequest) returns (ExecuteTaskResponse);
 }
@@ -74,6 +70,10 @@ message UpdateTaskRequest {
   optional string assignee_principal_id = 5;
   optional string parent_task_id = 6;
   TaskStatus status = 7 [(buf.validate.field).enum.defined_only = true];
+}
+
+message UpdateTaskResponse {
+  Task task = 1;
 }
 
 message TaskDependency {
@@ -187,3 +187,9 @@ message AddTaskCommentRequest {
 message AddTaskCommentResponse {
   TaskComment comment = 1;
 }
+
+message DeleteTaskRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message DeleteTaskResponse {}
