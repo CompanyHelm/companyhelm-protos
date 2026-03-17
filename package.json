@@ -28,6 +28,7 @@
     "buf:generate": "buf generate",
     "compile": "tsc -p tsconfig.generated.json",
     "copy:protos": "node scripts/copy-protos.mjs",
+    "prepare": "npm run build",
     "build": "npm run clean && npm run buf:generate && npm run compile && npm run copy:protos",
     "verify": "npm run buf:lint && npm run build && npm pack --dry-run"
   },
