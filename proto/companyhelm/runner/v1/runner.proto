@@ -77,7 +77,24 @@ message ClientMessage {
     HeartbeatResponse heartbeat_response = 9;
     AgentSdk agent_sdk_update = 10;
     CodexDeviceCode codex_device_code = 11;
+    ThreadTokenUsageUpdate thread_token_usage_update = 12;
   }
+}
+
+message TokenUsageBreakdown {
+  int64 input_tokens = 1 [(buf.validate.field).int64.gte = 0];
+  int64 cached_input_tokens = 2 [(buf.validate.field).int64.gte = 0];
+  int64 output_tokens = 3 [(buf.validate.field).int64.gte = 0];
+  int64 reasoning_output_tokens = 4 [(buf.validate.field).int64.gte = 0];
+  int64 total_tokens = 5 [(buf.validate.field).int64.gte = 0];
+}
+
+message ThreadTokenUsageUpdate {
+  string thread_id = 1 [(buf.validate.field).string.min_len = 1];
+  string sdk_turn_id = 2 [(buf.validate.field).string.min_len = 1];
+  TokenUsageBreakdown total_usage = 3;
+  TokenUsageBreakdown last_usage = 4;
+  optional int64 model_context_window = 5 [(buf.validate.field).int64.gte = 0];
 }
 
 message CodexDeviceCode {

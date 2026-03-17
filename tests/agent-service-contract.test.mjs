@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
 const agentProtoModule = require(resolve(process.cwd(), "dist", "gen", "companyhelm", "agent", "v1", "agent_pb.js"));
+const runnerProtoModule = require(resolve(process.cwd(), "dist", "gen", "companyhelm", "runner", "v1", "runner_pb.js"));
 
 test("generated agent task service exports update, delete, and execute task contract", () => {
   assert.ok(agentProtoModule.AgentTaskService.method.updateTask);
@@ -16,4 +17,10 @@ test("generated agent task service exports update, delete, and execute task cont
   assert.ok(agentProtoModule.DeleteTaskResponseSchema);
   assert.ok(agentProtoModule.ExecuteTaskRequestSchema);
   assert.ok(agentProtoModule.ExecuteTaskResponseSchema);
+});
+
+test("generated runner contract exports thread token usage update messages", () => {
+  assert.ok(runnerProtoModule.ClientMessageSchema);
+  assert.ok(runnerProtoModule.TokenUsageBreakdownSchema);
+  assert.ok(runnerProtoModule.ThreadTokenUsageUpdateSchema);
 });
