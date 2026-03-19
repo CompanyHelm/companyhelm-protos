@@ -220,6 +220,7 @@ message CreateThreadRequest {
   // git skill packages to use for the thread
   repeated ThreadGitSkillPackage git_skill_packages = 7;
   // thread secret for authenticated task execution calls
+  // TODO: remove and inject via additonal model instructions
   string cli_secret = 8 [(buf.validate.field).string.min_len = 1];
 }
 
