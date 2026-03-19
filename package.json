@@ -23,7 +23,7 @@
     "README.md"
   ],
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist src/gen",
     "buf:lint": "buf lint",
     "buf:generate": "buf generate",
     "compile": "tsc -p tsconfig.generated.json",
