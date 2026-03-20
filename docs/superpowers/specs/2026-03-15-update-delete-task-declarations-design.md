@@ -18,7 +18,7 @@ Included:
 
 Excluded:
 - `companyhelm-api` gRPC handler support
-- `companyhelm-agent-cli` client or command support
+- deprecated runtime client support
 - downstream runtime behavior changes
 
 ## Design
@@ -90,5 +90,5 @@ Expected result:
 
 Future work can add:
 - `companyhelm-api` gRPC server implementations for `UpdateTask`, `DeleteTask`, and `ExecuteTask`
-- `companyhelm-agent-cli` client methods and commands
+- deprecated runtime client methods and commands
 - tests in downstream repos that exercise the new RPC surface
